@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+ENV/
+
+# Local config / secrets
+.env
+.env.local
+*.pem
+*.key
+*.log
+
+# macOS / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Healer workspace (target repo clone)
+healer-workspace/
+target-repo/
+PROMPT_FOR_OMP.md
+
+# omp outputs
+*.omp.log
+omp-issue-*.log

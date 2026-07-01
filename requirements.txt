@@ -1,0 +1,2 @@
+# Repository B 只用 Python helper script,LLM 由 oh-my-pi 處理
+# 保留空白以免 GitHub Actions 抱怨

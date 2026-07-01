@@ -1,0 +1,82 @@
+name: healer
+
+on:
+  # 方案 A:定期輪詢
+  schedule:
+    - cron: "*/15 * * * *"          # 每 15 分鐘
+  # 方案 B:repository_dispatch(如果你選方案 B,把上面的 schedule 註解掉,用這個)
+  # repository_dispatch:
+  #   types: [auto-heal]
+  workflow_dispatch:                # 手動觸發(測試用)
+
+# 避免舊 healer 還在跑
+concurrency:
+  group: healer-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  poll-and-heal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TARGET_REPO: gcl858/OpenDataMonitor
+      HEALER_TOKEN: ${{ secrets.HEALER_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      OMP_MODEL: claude-sonnet-4-5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: <你的帳號>/OpenDataMonitor-Healer
+          token: ${{ secrets.HEALER_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Install oh-my-pi
+        run: curl -fsSL https://omp.sh/install | sh
+
+      - name: Verify omp
+        run: omp --version
+
+      - name: Poll issues
+        id: poll
+        run: |
+          set -e
+          ISSUES=$(python scripts/poll_issues.py)
+          echo "issues=$ISSUES"
+          echo "issue_list<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$ISSUES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Heal each issue
+        if: steps.poll.outputs.issue_list != '[]'
+        env:
+          ISSUE_LIST: ${{ steps.poll.outputs.issue_list }}
+        run: python scripts/dispatch_omp.py "$ISSUE_LIST"
+
+      - name: Notify on no-op
+        if: steps.poll.outputs.issue_list == '[]'
+        run: echo "✅ No auto-heal issues, exiting."
+
+      # ---- 失敗時通知(telegram,可選)----
+      - name: Notify on failure
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
+            curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d "chat_id=${TELEGRAM_CHAT_ID}" \
+              -d "text=⚠️ healer.yml 失敗了: ${{ github.run_id }}"
+          else
+            echo "Telegram secrets not set; skipping notification."
+          fi
