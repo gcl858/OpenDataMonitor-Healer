@@ -25,7 +25,7 @@ jobs:
     env:
       TARGET_REPO: gcl858/OpenDataMonitor
       HEALER_TOKEN: ${{ secrets.HEALER_TOKEN }}
-      ANTHROPIC_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+      MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
       OMP_MODEL: MiniMax-M3
     steps:
@@ -49,6 +49,9 @@ jobs:
 
       - name: Verify omp
         run: omp --version
+
+      - name: run omp
+        run: omp -p --model minimax/MiniMax-M3 "目前使用的模型名稱"
 
       - name: Poll issues
         id: poll

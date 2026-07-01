@@ -1,0 +1,10 @@
+providers:
+  minimax:
+    baseUrl: https://api.minimax.io/v1
+    apiKey: ${MINIMAX_API_KEY}    # ← 用 env var 展開,key 不進 git
+    type: openai-completions
+    models:
+      - id: MiniMax-M3
+        name: MiniMax M3
+        contextWindow: 200000
+        maxOutputTokens: 8192
