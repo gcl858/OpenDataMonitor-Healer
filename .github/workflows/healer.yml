@@ -3,7 +3,7 @@ name: healer
 on:
   # 方案 A:定期輪詢
   schedule:
-    - cron: "*/15 * * * *"          # 每 15 分鐘
+    - cron: "* 9 * * *"          # 9點
   # 方案 B:repository_dispatch(如果你選方案 B,把上面的 schedule 註解掉,用這個)
   # repository_dispatch:
   #   types: [auto-heal]
