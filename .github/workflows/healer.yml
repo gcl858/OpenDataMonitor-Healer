@@ -25,16 +25,18 @@ jobs:
     env:
       TARGET_REPO: gcl858/OpenDataMonitor
       HEALER_TOKEN: ${{ secrets.HEALER_TOKEN }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
-      OMP_MODEL: claude-sonnet-4-5
+      OMP_MODEL: MiniMax-M3
     steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: <你的帳號>/OpenDataMonitor-Healer
-          token: ${{ secrets.HEALER_TOKEN }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        #with:
+        #  repository: gcl858/OpenDataMonitor-Healer
+        #  token: ${{ secrets.HEALER_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
