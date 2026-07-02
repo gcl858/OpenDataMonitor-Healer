@@ -1,0 +1,59 @@
+Perform a complete audit of the current OH MY Pi environment.
+
+Please inspect and report:
+
+1. Installed agents:
+   - List all available agents
+   - Agent names
+   - Purpose and capabilities
+   - Configuration locations
+
+2. Available tools:
+   - List all built-in tools
+   - List custom tools
+   - Tool descriptions
+   - Enabled/disabled status
+
+3. Skills:
+   - Scan all installed skills
+   - Skill names
+   - Skill locations
+   - Purpose
+   - Dependencies
+
+4. Extensions / Plugins:
+   - List installed extensions
+   - Extension paths
+   - Commands provided
+   - Hooks registered
+
+5. MCP configuration:
+   - List MCP servers
+   - Server names
+   - Available capabilities
+   - Configuration files
+
+6. Models and providers:
+   - List configured LLM providers
+   - Available models
+   - Default model settings
+
+7. OMP configuration:
+   - Global config files
+   - Project-level config files
+   - Environment variables affecting OMP
+
+8. Session environment:
+   - Current working directory
+   - Git repository status
+   - Detected languages/frameworks
+   - Relevant project metadata
+
+9. Security review:
+   - API keys or secrets exposure risks
+   - Unsafe permissions
+   - Suspicious configuration
+
+Generate a structured Markdown report.
+Do not modify any files.
+Only inspect and report findings.

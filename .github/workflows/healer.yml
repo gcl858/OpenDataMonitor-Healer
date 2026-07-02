@@ -52,6 +52,9 @@ jobs:
 
       - name: run omp
         run: omp -p --model minimax/MiniMax-M3 "目前使用的模型名稱"
+      
+      - name: run batch
+        run: ./omp_batch.sh < audit.txt
 
       - name: Poll issues
         id: poll
