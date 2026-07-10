@@ -3,7 +3,7 @@ name: healer
 on:
   # 方案 A:定期輪詢
   schedule:
-    - cron: "* 9 * * *"          # 9點
+    - cron: "0 8 * * *"          # 每天 8:00 (UTC)
   # 方案 B:repository_dispatch(如果你選方案 B,把上面的 schedule 註解掉,用這個)
   # repository_dispatch:
   #   types: [auto-heal]
@@ -48,15 +48,32 @@ jobs:
         run: curl -fsSL https://omp.sh/install | sh
 
       - name: Verify omp
-        run: omp --version
+        run: |
+          set -e
+          omp --version
+          test -n "$OMP_MODEL" || (echo "::error::OMP_MODEL not set" && exit 1)
+          echo "✓ omp ready, model=$OMP_MODEL"
 
-      - name: run omp
-        run: omp -p --model minimax/MiniMax-M3 "目前使用的模型名稱"
-      
+      - name: Ensure healer labels exist on target repo
+        env:
+          GH_TOKEN: ${{ secrets.HEALER_TOKEN }}
+        run: |
+          # 這三個 label 對應 dispatch_omp.py 的 LABEL_IN_PROGRESS / LABEL_HEALED / LABEL_BLOCKED
+          # 已存在時 gh 會 error,我們用 || true 吞掉
+          gh label create "healer-in-progress" --repo "$TARGET_REPO" \
+            --color "FBCA04" --description "healer is currently working on this issue" \
+            2>/dev/null || true
+          gh label create "healed" --repo "$TARGET_REPO" \
+            --color "0E8A16" --description "healer auto-fixed this issue and opened a PR" \
+            2>/dev/null || true
+          gh label create "healer-blocked" --repo "$TARGET_REPO" \
+            --color "D93F0B" --description "healer opened a PR but it cannot merge (conflict / CI red / already merged); needs human" \
+            2>/dev/null || true
+
       # - name: run batch
       #   run: |
       #     chmod +x ./omp_batch.sh
-      #     ./omp_batch.sh < audit.txt        
+      #     ./omp_batch.sh < audit.txt
 
       - name: Poll issues
         id: poll
@@ -73,6 +90,15 @@ jobs:
         env:
           ISSUE_LIST: ${{ steps.poll.outputs.issue_list }}
         run: python scripts/dispatch_omp.py "$ISSUE_LIST"
+
+      - name: Upload omp logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omp-logs-${{ github.run_id }}
+          path: /tmp/healer-workspace/omp-issue-*.log
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Notify on no-op
         if: steps.poll.outputs.issue_list == '[]'

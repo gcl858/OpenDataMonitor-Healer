@@ -25,6 +25,7 @@ def list_auto_heal_issues() -> list[dict]:
     """呼叫 `gh issue list` 拉 open + label=auto-heal 的 issues。"""
     target = os.environ.get("TARGET_REPO", "gcl858/OpenDataMonitor")
     label = os.environ.get("AUTO_HEAL_LABEL", "auto-heal")
+    healed_label = os.environ.get("LABEL_HEALED", "healed")
     token = os.environ.get("HEALER_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
         print("::error::HEALER_TOKEN / GITHUB_TOKEN not set", file=sys.stderr)
@@ -35,7 +36,7 @@ def list_auto_heal_issues() -> list[dict]:
         "--repo", target,
         "--state", "open",
         "--label", label,
-        "--json", "number,title,body,url,createdAt",
+        "--json", "number,title,body,url,createdAt,labels",
         "--limit", "10",
     ]
     p = subprocess.run(cmd, capture_output=True, text=True, check=False)
@@ -47,8 +48,12 @@ def list_auto_heal_issues() -> list[dict]:
     except json.JSONDecodeError:
         return []
 
-    # 過濾掉太新的(避免 race condition:剛建立 30 秒內不要搶)
-    # 這裡不做,交給後面 oh-my-pi 自己處理。
+    # 防禦性過濾:已 healed 的不該再被處理
+    # (理論上 close 後 state=closed 就不會被拉到了,這層只是多一道保險)
+    items = [
+        i for i in items
+        if healed_label not in [l.get("name") for l in i.get("labels", [])]
+    ]
     return items
 
 

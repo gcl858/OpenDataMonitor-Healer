@@ -34,9 +34,9 @@ ENV/
 *.swp
 *.swo
 
-# Healer workspace (target repo clone)
+# Healer workspace (target repo clone + per-issue worktrees)
 healer-workspace/
-target-repo/
+target-repo*/
 PROMPT_FOR_OMP.md
 
 # omp outputs
